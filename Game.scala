@@ -4,6 +4,9 @@ import scala.runtime.Nothing$
   * Created by cody on 4/12/17.
   */
 class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
+  val state_invariant = new State(on_move = White(), pieces =
+      (for (c <- List.range(0,cols)) yield Pawn(p = White(), l = new Loc(0,c))) :::
+      (for (c <- List.range(0,cols)) yield Pawn(p = Black(), l = new Loc(rows-1, c))))
   var nodecount: Int = 0
   var ttcount: Int = 0
   var ttable: Map[String, State] = Map{
@@ -13,6 +16,7 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
   }
 
   def prettyPrint(s: State): Boolean = {
+    System.err.println("PrettyPrint's State: " + s)
     var str = ""
     var tempstr = ""
     for (r <- List.range(0, rows)){
@@ -81,7 +85,7 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
     assert(p.funcs.contains(f))
 
     val newLoc = p.getMovLoc(f)
-    //System.err.println("New loc calculated by checkMov: " + newLoc.x + "," + newLoc.y)
+    //System.err.println("New loc calculated by getMovLoc: " + newLoc.x + "," + newLoc.y)
     if (!isInBounds(newLoc))
       return false
 
@@ -93,7 +97,7 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
       case ptrn() => {
         atLoc match {
           case Some(b) => {
-            System.err.println("At attempted location: " + b.getPlayer)
+            //System.err.println("At attempted location: " + b.getPlayer)
             if (b.getPlayer != p.getPlayer)
               return true
             false
@@ -133,52 +137,93 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
   }
 
   def state_value(s: State, ii: Int): Int = {
+
     System.err.println("\n======================================\n")
     System.err.println("Layer " + ii)
+    System.err.println("State: " + s)
     System.err.println("On move: " + s.on_move)
+
     if (isQueened(s)) {
-      s.value = 1
+      if (ii==0) assert(s == state_invariant)
+      //s.value = 1
       return 1
     }
+    if (ii==0) assert(s == state_invariant)
 
     val p = s.on_move
-    var retVal = 0
+    var retVal = -1
+    if (ii==0) assert(s == state_invariant)
 
     //Memoization, ttable checking
     val key = makeString(s)
+    if (ii==0) assert(s == state_invariant)
     var foundState = ttable.get(key)
     foundState match {
-      case Some(st) => if (st.value != 0) return st.value
+      case Some(st) => {
+        if (st.value != 0) {
+          System.err.println("==== Found a state in ttable; returning ====")
+          return st.value
+        }
+      }
       case _ =>
     }
+
     val pkey = palindrome(key)
     foundState = ttable.get(pkey)
     foundState match {
-      case Some(st) => if (st.value != 0) return st.value
+      case Some(st) => {
+        if (st.value != 0) {
+          System.err.println("==== Found a palindrome state in ttable; returning ====")
+          return st.value
+        }
+      }
       case _ =>
     }
 
-    val stuff = s.pieces.filter((a:Piece) => a.getPlayer == p)
-    //print ("Pieces: " + stuff )
-    for (piece <- stuff){
+    val onMovePieces = s.pieces.filter((a:Piece) => a.getPlayer == p)
+    if (ii==0) assert(s == state_invariant)
+    for (piece <- onMovePieces){
+      if (ii==0) assert(s == state_invariant)
+
       prettyPrint(s)
+      System.err.println("^Layer " + ii)
+      System.err.println("On move: " + s.on_move)
+      //System.err.println(s)
+      System.err.println("Pieces: " + onMovePieces )
+      System.err.println("At piece: " + piece)
+      System.err.println("Piece Details: " + piece.getPlayer + piece.getLoc.x + ',' + piece.getLoc.y)
       scala.io.StdIn.readLine()
 
-      System.err.println("L " + ii + " Piece Chosen: " + piece.getPlayer + piece.getLoc.x + ',' + piece.getLoc.y)
       for (move <- piece.funclist){
         val checked = checkMove(move, piece, s)
-        System.err.println("L " + ii + "Move Chosen: " + move)
+        if (ii==0) assert(s == state_invariant)
+
+        System.err.println("\nMove Chosen: " + move)
         System.err.println("Is it legal? " + checked)
+
         if (checked) {
-          retVal = math.max(retVal, -state_value(piece.funcs(move)(s), ii+1))
+          val passDown = piece.funcs(move)(s)
+          if (ii==0) assert(s==state_invariant)
+
+          val ans = state_value(passDown, ii+1)
+          if (ii==0) assert(s == state_invariant)
+
+          retVal = math.max(retVal, -ans)
+
           //win-prune
-          if (retVal == 1)
-            return retVal
+          //if (retVal == 1)
+          //  return retVal
+
+          System.err.println("Returned from recursive layer " + (ii+1))
+          System.err.println("result: " + retVal)
+          if (ii==0) assert(s == state_invariant)
         }
       }
     }
-    s.value = retVal
-    ttable += makeString(s) -> s
+    //s.value = retVal
+    val ns = new State(on_move = s.on_move, value = retVal, pieces = for (p <- s.pieces) yield p)
+    ttable += makeString(ns) -> ns
+    if (ii==0) assert(s == state_invariant)
     retVal
   }
 
