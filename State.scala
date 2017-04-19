@@ -18,28 +18,28 @@ class State(val on_move: Player, val value: Int = 0, val pieces: List[Piece]){
     obj match {
       case s: State => {
         if (this.on_move != s.on_move) {
-          System.out.println("States have different on_move")
+          //System.err.println("States have different on_move")
           return false
         }
         if (this.value != s.value) {
-          System.out.println("States have different value")
+          //System.err.println("States have different value")
           return false
         }
-        for ((tp, sp) <- this.pieces zip s.pieces){
-          if (tp.getPlayer != sp.getPlayer) {
-            System.out.println("Pieces.player different somewhere in State lists")
-            return false
-          }
-          else if (tp.getLoc != sp.getLoc) {
-            System.out.println("Pieces.loc different somewhere in State lists")
-            System.out.println(tp.getLoc.x + "," + tp.getLoc.y + " vs " + sp.getLoc.x + "," + sp.getLoc.y)
-            return false
+
+        if (this.pieces.length != s.pieces.length)
+          return false
+
+        for (tp <- this.pieces) {
+          val j = s.pieces.find((x: Piece) => x == tp)
+          j match {
+            case Some(sp) => //System.err.println("matching piece found")
+            case _ => return false
           }
         }
         true
       }
       case _ => {
-        System.out.println("Item not a State")
+        //System.err.println("Item not a State")
         false
       }
     }

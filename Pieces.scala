@@ -33,6 +33,7 @@ sealed class Loc(val x: Int, val y: Int) {
 abstract class Piece(p: Player, l: Loc) {
   val funcs: Map[String, State => State]
   val funclist: List[String]
+  override def equals(o: Any): Boolean
   def getLoc: Loc = this.l
   def getPlayer: Player = this.p
   def getMovLoc(m: String): Loc
@@ -47,14 +48,30 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
 
   val funclist:List[String] = funcs.keys.toList
 
+  override def equals(o:Any): Boolean = {
+    o match {
+      case that: Pawn => {
+        if (this.p == that.p && this.l == that.l)
+          true
+        else
+          false
+      }
+      case _ => false
+    }
+  }
+
   def fwd(st: State): State = {
     val pred = PartialFunction(this.l.equals)
     val np = st.pieces.filterNot((x: Piece) => x == this)
+
     /*
     System.err.println("Function fwd")
     System.err.println("s.pieces: " + st.pieces)
     System.err.println("np: " + np)
     */
+
+    assert(np != st.pieces)
+
     this.p match {
       case a: Black => {
         val newp = Pawn(p = this.p, l = new Loc(x = this.l.x-1, y = this.l.y))

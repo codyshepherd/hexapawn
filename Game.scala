@@ -4,9 +4,6 @@ import scala.runtime.Nothing$
   * Created by cody on 4/12/17.
   */
 class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
-  val state_invariant = new State(on_move = White(), pieces =
-      (for (c <- List.range(0,cols)) yield Pawn(p = White(), l = new Loc(0,c))) :::
-      (for (c <- List.range(0,cols)) yield Pawn(p = Black(), l = new Loc(rows-1, c))))
   var nodecount: Int = 0
   var ttcount: Int = 0
   var ttable: Map[String, State] = Map{
@@ -15,32 +12,40 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
       (for (c <- List.range(0,cols)) yield Pawn(p = Black(), l = new Loc(rows-1, c))))
   }
 
-  def prettyPrint(s: State): Boolean = {
-    System.err.println("PrettyPrint's State: " + s)
+  def prettyPrint(s: State): String = {
     var str = ""
+
     var tempstr = ""
     for (r <- List.range(0, rows)){
       for (c <- List.range(0, cols)) {
         val pc = s.pieces.find((x:Piece) => if (x.getLoc.x == r && x.getLoc.y == c) true else false)
         pc match {
-          case Some(a) => if (a.getPlayer == White()) tempstr += "[w]" else tempstr += "[b]"
-          case _ => tempstr += "[ ]"
+          case Some(a) => if (a.getPlayer == White()) tempstr += "P" else tempstr += "p"
+          case _ => tempstr += "."
         }
       }
       str = tempstr + '\n' + str
       tempstr = ""
     }
 
-    System.err.println(str)
-    true
+    if(s.on_move == White())
+      str = "W\n" + str
+    else
+      str = "B\n" + str
+
+    str
   }
 
-  def solve(): Int = {
-    val initState = ttable.get("w_bw_bw_b")
-    initState match {
-      case Some(a) => state_value(a, 0)
-      case _ => 0
-    }
+  def solve(st: State): Int = {
+
+    if (ttenabled)
+      ttable += makeString(st) -> st
+    //state_value(st, 0)
+
+    prettyPrint(st)
+
+    0
+
   }
 
   def palindrome(str: String): String = {
@@ -144,19 +149,14 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
     System.err.println("On move: " + s.on_move)
 
     if (isQueened(s)) {
-      if (ii==0) assert(s == state_invariant)
-      //s.value = 1
       return 1
     }
-    if (ii==0) assert(s == state_invariant)
 
     val p = s.on_move
     var retVal = -1
-    if (ii==0) assert(s == state_invariant)
 
     //Memoization, ttable checking
     val key = makeString(s)
-    if (ii==0) assert(s == state_invariant)
     var foundState = ttable.get(key)
     foundState match {
       case Some(st) => {
@@ -181,9 +181,7 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
     }
 
     val onMovePieces = s.pieces.filter((a:Piece) => a.getPlayer == p)
-    if (ii==0) assert(s == state_invariant)
     for (piece <- onMovePieces){
-      if (ii==0) assert(s == state_invariant)
 
       prettyPrint(s)
       System.err.println("^Layer " + ii)
@@ -196,17 +194,14 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
 
       for (move <- piece.funclist){
         val checked = checkMove(move, piece, s)
-        if (ii==0) assert(s == state_invariant)
 
         System.err.println("\nMove Chosen: " + move)
         System.err.println("Is it legal? " + checked)
 
         if (checked) {
           val passDown = piece.funcs(move)(s)
-          if (ii==0) assert(s==state_invariant)
 
           val ans = state_value(passDown, ii+1)
-          if (ii==0) assert(s == state_invariant)
 
           retVal = math.max(retVal, -ans)
 
@@ -216,14 +211,12 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
 
           System.err.println("Returned from recursive layer " + (ii+1))
           System.err.println("result: " + retVal)
-          if (ii==0) assert(s == state_invariant)
         }
       }
     }
     //s.value = retVal
     val ns = new State(on_move = s.on_move, value = retVal, pieces = for (p <- s.pieces) yield p)
     ttable += makeString(ns) -> ns
-    if (ii==0) assert(s == state_invariant)
     retVal
   }
 
@@ -232,7 +225,16 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
 object Program {
   def main(args: Array[String]): Unit = {
     val g = new Game(ttenabled = true)
-    print (g.solve())
+
+    val l = List(
+      Pawn(Black(), new Loc(2,0)), Pawn(Black(), new Loc(2,1)), Pawn(Black(), new Loc(2,2)),
+      Pawn(White(), new Loc(0,0)), Pawn(White(), new Loc(1,1)), Pawn(White(), new Loc(0,2))
+    )
+    val s = new State(Black(), 0, l)
+
+    g.solve(s)
+
+
 
     /*
     val p = Pawn(p=White(), l=new Loc(0,0))
