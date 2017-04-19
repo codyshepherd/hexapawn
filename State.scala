@@ -1,7 +1,7 @@
 /**
   * Created by cody on 4/12/17.
   */
-class State(val on_move: Player, val value: Int = 0, val pieces: List[Piece]){
+class State(val on_move: Player, var value: Int = 0, val pieces: List[Piece]){
 
   override def toString: String = {
     var str = "\nState:\n"

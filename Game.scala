@@ -1,5 +1,3 @@
-import scala.runtime.Nothing$
-
 /**
   * Created by cody on 4/12/17.
   */
@@ -36,15 +34,11 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
     str
   }
 
-  def solve(st: State): Int = {
+  def solve(s: State): Int = {
 
     if (ttenabled)
-      ttable += makeString(st) -> st
-    //state_value(st, 0)
-
-    prettyPrint(st)
-
-    0
+      ttable += makeString(s) -> s
+    state_value(s, 0)
 
   }
 
@@ -141,83 +135,57 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
     }
   }
 
+  def getLegalMoves(pieces:List[Piece], s:State): Map[Piece, List[String]] = {
+    var m: Map[Piece, List[String]] = Map[Piece, List[String]]()
+    var yn = false
+    for(p <- pieces) {
+      for (funcstring <- p.funclist) {
+        yn = checkMove(funcstring, p, s)
+        if (yn)
+          m.get(p) match {
+            case Some(xs:List[String]) => m = m.updated(p, xs :+ funcstring)
+            case None => m = m.updated(p, List(funcstring))
+          }
+      }
+    }
+    m
+  }
+
   def state_value(s: State, ii: Int): Int = {
+    //if(ii == 2)
+    //  return s.value
 
-    System.err.println("\n======================================\n")
-    System.err.println("Layer " + ii)
-    System.err.println("State: " + s)
-    System.err.println("On move: " + s.on_move)
+    val on_move_pieces  :List[Piece]               = s.pieces.filter((p:Piece) => p.getPlayer == s.on_move)
+    val legal_moves     :Map[Piece, List[String]]  = getLegalMoves(on_move_pieces, s)
 
-    if (isQueened(s)) {
-      return 1
+    var max_val = -1
+    var new_val = -99
+
+    if(legal_moves.isEmpty) {
+      s.value = -1
+      return -1
     }
 
-    val p = s.on_move
-    var retVal = -1
+    for(piece: Piece <- legal_moves.keys) {
+      for (move: String <- legal_moves(piece)){
+        val new_state = piece.funcs(move)(s)
 
-    //Memoization, ttable checking
-    val key = makeString(s)
-    var foundState = ttable.get(key)
-    foundState match {
-      case Some(st) => {
-        if (st.value != 0) {
-          System.err.println("==== Found a state in ttable; returning ====")
-          return st.value
-        }
-      }
-      case _ =>
-    }
+        /*
+        System.err.println("Depth: " + ii + " , " + s.on_move + " moved " + move)
+        System.err.println(prettyPrint(new_state))
+        scala.io.StdIn.readLine()
+        */
 
-    val pkey = palindrome(key)
-    foundState = ttable.get(pkey)
-    foundState match {
-      case Some(st) => {
-        if (st.value != 0) {
-          System.err.println("==== Found a palindrome state in ttable; returning ====")
-          return st.value
-        }
-      }
-      case _ =>
-    }
-
-    val onMovePieces = s.pieces.filter((a:Piece) => a.getPlayer == p)
-    for (piece <- onMovePieces){
-
-      prettyPrint(s)
-      System.err.println("^Layer " + ii)
-      System.err.println("On move: " + s.on_move)
-      //System.err.println(s)
-      System.err.println("Pieces: " + onMovePieces )
-      System.err.println("At piece: " + piece)
-      System.err.println("Piece Details: " + piece.getPlayer + piece.getLoc.x + ',' + piece.getLoc.y)
-      scala.io.StdIn.readLine()
-
-      for (move <- piece.funclist){
-        val checked = checkMove(move, piece, s)
-
-        System.err.println("\nMove Chosen: " + move)
-        System.err.println("Is it legal? " + checked)
-
-        if (checked) {
-          val passDown = piece.funcs(move)(s)
-
-          val ans = state_value(passDown, ii+1)
-
-          retVal = math.max(retVal, -ans)
-
-          //win-prune
-          //if (retVal == 1)
-          //  return retVal
-
-          System.err.println("Returned from recursive layer " + (ii+1))
-          System.err.println("result: " + retVal)
-        }
+        if(new_state.value == -1)
+          new_val = 1
+        else
+          new_val = -state_value(new_state, ii+1)
+        max_val = math.max(max_val, new_val)
       }
     }
-    //s.value = retVal
-    val ns = new State(on_move = s.on_move, value = retVal, pieces = for (p <- s.pieces) yield p)
-    ttable += makeString(ns) -> ns
-    retVal
+
+    s.value = max_val
+    max_val
   }
 
 }
@@ -232,9 +200,22 @@ object Program {
     )
     val s = new State(Black(), 0, l)
 
-    g.solve(s)
+    val al = List(
+      Pawn(Black(), new Loc(2,0)), Pawn(Black(), new Loc(2,1)), Pawn(Black(), new Loc(2,2)),
+      Pawn(White(), new Loc(0,0)), Pawn(White(), new Loc(0,1)), Pawn(White(), new Loc(0,2))
+    )
 
+    val as = new State(Black(), 0, al)
+    val bs = new State(White(), 0, al)
 
+    System.err.println(g.prettyPrint(s))
+    System.err.println(g.solve(s))
+
+    System.err.println(g.prettyPrint(as))
+    System.err.println(g.solve(as))
+
+    System.err.println(g.prettyPrint(bs))
+    System.err.println(g.solve(bs))
 
     /*
     val p = Pawn(p=White(), l=new Loc(0,0))

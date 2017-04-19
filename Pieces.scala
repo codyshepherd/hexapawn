@@ -135,6 +135,7 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
       case "capLeft" => new Loc(x = newx, y = this.l.y - 1 )
     }
   }
+
 }
 
 
