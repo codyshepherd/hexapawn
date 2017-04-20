@@ -1,15 +1,17 @@
-/**
-  * Created by cody on 4/12/17.
+/** Game.scala
+  * Cody Shepherd
   */
-class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
-  var nodecount: Int = 0
-  var ttcount: Int = 0
-  var ttable: Map[String, State] = Map{
-    "w_bw_bw_b" -> new State(on_move = White(), pieces =
-      (for (c <- List.range(0,cols)) yield Pawn(p = White(), l = new Loc(0,c))) :::
-      (for (c <- List.range(0,cols)) yield Pawn(p = Black(), l = new Loc(rows-1, c))))
-  }
 
+/** This class represents everything necessary to solve (find the value of)
+  * a given initial position.
+  * */
+class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
+  var nodecount: Int = 0    //In support of future measurement framework
+  var ttcount: Int = 0      //In support of future ttable functionality
+  var ttable: Map[String, State] = Map()
+
+  /** This function generates a string representation of the board in the format provided by the tests.
+    * */
   def prettyPrint(s: State): String = {
     var str = ""
 
@@ -34,6 +36,10 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
     str
   }
 
+  /** Returns the value of the given state.
+    *
+    * This is the primary driver function of the game.
+    * */
   def solve(s: State): Int = {
 
     if (ttenabled)
@@ -42,6 +48,15 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
 
   }
 
+  /** Returns a "palindrome" of a custom string representation of the board, whereby columns are
+    * listed from left to right in triplets, with each triplet representing the contents of the column
+    * from top to bottom.
+    *
+    * e.g. the beginning state of a 3x3 board would be "w_bw_bw_b"
+    *
+    * If black had moved its column-1 piece down, the initial string would be "wb_w_bw_b" and its palindrome
+    * would be "w_bw_bwb_"
+    * */
   def palindrome(str: String): String = {
     assert(str.length%rows == 0)
 
@@ -53,6 +68,9 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
     newstr
   }
 
+  /** Returns a string representation of the board in the format described in the docstring for
+    * palindrome().
+    * */
   def makeString(s: State): String = {
     var str = ""
     for (c <- List.range(0, cols)){
@@ -67,6 +85,8 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
     str
   }
 
+  /** Returns whether or not a location is within the bounds of the game board.
+    * */
   def isInBounds(l:Loc): Boolean = {
     if (l.x < 0 || l.x >= rows)
       false
@@ -76,10 +96,15 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
       true
   }
 
+  /** Returns a list of the locations of all pieces in a given state/board.
+    * */
   def getLocs(s: State): List[Loc] = {
     for (p <- s.pieces) yield p.getLoc
   }
 
+  /** Returns whether or not a proposed move from a proposed piece, given
+    * a proposed state is legal.
+    * */
   def checkMove(f: String, p: Piece, s: State): Boolean = {
     assert(p.funcs.contains(f))
 
@@ -115,6 +140,9 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
 
   }
 
+  /** Returns whether the given player is queened (i.e. a pawn is at its opposite row) in
+    * the given state.
+    * */
   def isQueened(s: State, p: Player): Boolean = {
     p match {
       case a: Black => {
@@ -134,6 +162,8 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
     }
   }
 
+  /** Returns a (Piece -> List) hash map of all legal moves a list of pieces has in the given state.
+    * */
   def getLegalMoves(pieces:List[Piece], s:State): Map[Piece, List[String]] = {
     var m: Map[Piece, List[String]] = Map[Piece, List[String]]()
     var yn = false
@@ -150,6 +180,12 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
     m
   }
 
+  /** Returns the value (-1 or 1; 0 is considered an error) of a given state.
+    *
+    * Recursive.
+    *
+    * ii argument is for debugging purposes.
+    * */
   def state_value(s: State, ii: Int): Int = {
     //if(ii == 2)
     //  return s.value
@@ -176,9 +212,10 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
         */
 
         //if(new_state.value == -1)
-        if(isQueened(new_state, s.on_move)) {
+        if(isQueened(new_state, s.on_move) || new_state.value == -1) {
           new_state.value = -1
-          new_val = 1
+          s.value = 1
+          return 1
         }
         else
           new_val = -state_value(new_state, ii+1)

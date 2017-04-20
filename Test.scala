@@ -1,6 +1,12 @@
-/**
-  * Created by cody on 4/19/17.
+/** Test.scala
+  * Cody Shepherd
   */
+
+/** This is a unit test suite for the files in this program.
+  *
+  * It had fairly good coverage at some point, but has lagged behind development
+  * a bit because of time constraints.
+  * */
 class Test {
   val l = List(
     Pawn(Black(), new Loc(2,0)), Pawn(Black(), new Loc(2,1)), Pawn(Black(), new Loc(2,2)),

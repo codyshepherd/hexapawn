@@ -1,6 +1,12 @@
-/**
-  * Created by cody on 4/12/17.
+/** State.scala
+  * Cody Shepherd
   */
+
+/** This class represents a board state or position at some time t.
+  *
+  * Note that its "value" field is the only one that is mutable - this is to facilitate
+  * ttable functionality.
+  * */
 class State(val on_move: Player, var value: Int = 0, val pieces: List[Piece]){
 
   override def toString: String = {
@@ -14,6 +20,15 @@ class State(val on_move: Player, var value: Int = 0, val pieces: List[Piece]){
     str
   }
 
+  /** The purpose of this method is probably obvious.
+    *
+    * However it is worth specifying, two states are equal if:
+    *   - They have the same player on move
+    *   - Their value is the same
+    *   - They contain pieces at the same locations of the same color, in any order.
+    *     - i.e. the pieces do not have to be the same memory references, just have the same
+    *       attributes.
+    * */
   override def equals(obj: scala.Any): Boolean = {
     obj match {
       case s: State => {

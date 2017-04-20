@@ -1,6 +1,14 @@
-/**
-  * Created by cody on 4/19/17.
+/** Terminal.scala
+  * Cody Shepherd
   */
+
+/** This class handles IO for the hexapawn solver. It has no methods, only its
+  * constructor loop, which takes in input from StdIn, formats it, greates a
+  * Game object, calls its solve() method, and prints the numeric result.
+  *
+  * This file also happens to hold the runnable program definition for all these
+  * files.
+  * */
 class Terminal {
 
   var input: List[String] = List()
@@ -18,13 +26,6 @@ class Terminal {
 
   val player:Player = if (p1 == "B") Black() else White()
 
-    /*
-    p1 match {
-    case "B" => Black()
-    case _ => White()
-  }
-  */
-
   var plist: List[Piece] = List[Piece]()
 
   for((line:String, x:Int) <- board.reverse zip List.range(0, xdim)){
@@ -39,37 +40,8 @@ class Terminal {
 
   val g: Game = new Game(xdim, ydim, ttenabled=false)
 
-  //System.err.println("Init state:")
-  //System.err.println(g.prettyPrint(initstate))
-
   print(g.solve(initstate))
 
-
-  /*
-  val onmove: String = scala.io.StdIn.readLine()
-
-  if(onmove.length > 1)
-    System.exit(-1)
-
-  var board: String = ""
-  var countB: Int = 0
-  var countW: Int = 0
-
-  var line: String = scala.io.StdIn.readLine()
-  val len: Int = line.length
-  countB += line.count((p:Char) => p == 'p')
-  countW += line.count((p:Char) => p == 'P')
-
-  while(countB < len && countW < len) {
-    board += line
-    line = scala.io.StdIn.readLine()
-  }
-
-  val lines: List[String] = board.split("\n").toList
-  System.err.println(onmove)
-  for(line <- lines)
-    System.err.println(line)
-   */
 
 }
 
