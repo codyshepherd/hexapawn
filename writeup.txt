@@ -1,0 +1,72 @@
+Cody Shepherd
+CS 542
+Writeup Project 2: Hexapawn
+
+My solution for this project was pretty much in line with the psuedocode presented in class, algorithmically. The
+Game class performs a depth-first search down a "tree" of states, transitioning on moves from a given player.
+
+The only optimization included with this solution is win pruning; in most cases this saves a substantial amount
+of work. It was my original intention to implement a ttable as well, and in fact some artifacts of that intention
+still exist in the code, but was not able to get to it due to time constraints. I have left the artifacts in
+my code because I'd like to add the ttable memoization as I build this program into a MiniChess solver.
+
+The unique decisions that I made about this program were mostly about architecture, and were mostly due to a
+forward-looking attempt to position myself to require less work to get MiniChess up and going. We will see if
+this attempt was effective or not in the coming weeks.
+
+The biggest choices had to do with how Pieces and States interact within the Game class.
+
+For starters, Pawns in the case of this program didn't really need a base class to inherit from, but hopefully
+this will mean less work for me when we start adding rooks and queens, etc., as much of the infrastructure to
+manage those pieces is already in this program, and hopefully general enough to require only a little tuning to
+accommodate the new piece types.
+
+Methods in the pieces themselves are what generate new states; this seemed natural given the tree abstraction, whereby
+the edges were defined by moves, and each move is a behavior by a specific piece. In practice it was fairly easy
+to execute this, although it might be a bit hard to read. Sorry for that.
+
+The game board is never actually instantiated as a grid in my program; instead it is defined by a list of pieces,
+where each piece stores its own location. Moves are constrained by a checker that ensures they are both in bounds and
+possible in a physical sense (e.g. it ensures pieces do not move forward into one another and accidentally "capture"
+without meaning to). At first whiff this might seem like it requires more work than a grid representation, but
+I like to think it saves a lot of work by never having to look at empty grid squares, and the amount of work it
+has to do for things like gathering legal moves decreases as more and more pieces are taken off the board. This seems
+like a win to me.
+
+I did end up writing a fairly thorough unit test suite while I was building this program, and it helped quite a bit to
+ensure that everything worked properly. It also helped better my ability to reason about my own code.
+
+Follwing are test inputs/outputs. All text except the number at the end of each test are put to StdErr.
+
+Codys-MacBook:hexapawn cody$ ./solve.sh < src/test1.in
+Input string
+B
+ppp
+...
+PPP
+Nodes touched: 76
+-1
+Codys-MacBook:hexapawn cody$ cat src/test1.out
+-1
+Codys-MacBook:hexapawn cody$ ./solve.sh < src/test2.in
+Input string
+W
+p...
+....
+....
+P...
+Nodes touched: 2
+-1
+Codys-MacBook:hexapawn cody$ cat src/test2.out
+-1
+Codys-MacBook:hexapawn cody$ ./solve.sh < src/test3.in
+Input string
+W
+p...
+.p.p
+..p.
+PP.P
+Nodes touched: 154
+-1
+Codys-MacBook:hexapawn cody$ cat src/test3.out
+-1

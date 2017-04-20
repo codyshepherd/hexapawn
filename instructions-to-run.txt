@@ -1,0 +1,21 @@
+This program requires Java 8 installed to compile. For some reason, the linuxlab machines have the
+experimental OpenJDK Java 9 set by default. However, this program will compile and run on the linuxlab if Java 8
+is enabled.
+
+Enabling Java 8 and instructions to run this program follow:
+
+1. Enable Java 8 on linux by running `addpkg` at the command line and selecting Java 8 in the ensuing GUI.
+
+2. `cd` to the top level of this project.
+    i.e., `ls` should show this file, the Makefile, the writeup, and directories src and tests
+
+3. to compile, execute Makefile with `make`
+    This will put compiled binaries in $PWD/out
+
+4. run the binary using the included `solve.sh` bash script
+    ./solve.sh
+
+Appropriately formatted text files can be piped into this program, e.g.:
+
+    ./solve.sh < sometest.txt
+

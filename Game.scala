@@ -44,8 +44,10 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
 
     if (ttenabled)
       ttable += makeString(s) -> s
-    state_value(s, 0)
 
+    val result = state_value(s, 0)
+    System.err.println("Nodes touched: " + nodecount)
+    result
   }
 
   /** Returns a "palindrome" of a custom string representation of the board, whereby columns are
@@ -203,6 +205,8 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
 
     for(piece: Piece <- legal_moves.keys) {
       for (move: String <- legal_moves(piece)){
+        nodecount += 1
+
         val new_state = piece.funcs(move)(s)
 
         /*
@@ -217,9 +221,13 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
           s.value = 1
           return 1
         }
-        else
-          new_val = -state_value(new_state, ii+1)
+
+        new_val = -state_value(new_state, ii+1)
         max_val = math.max(max_val, new_val)
+
+        if(max_val == 1){
+          return 1
+        }
       }
     }
 
