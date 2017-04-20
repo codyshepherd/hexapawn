@@ -272,9 +272,9 @@ class Test {
     }
 
     def testIsQueened(): Unit ={
-      assert(!g.isQueened(s))
-      assert(!g.isQueened(bs))
-      assert(g.isQueened(cs))
+      assert(!g.isQueened(s, White()))
+      assert(!g.isQueened(bs, Black()))
+      assert(g.isQueened(cs, White()))
     }
 
     testPrettyPrint()

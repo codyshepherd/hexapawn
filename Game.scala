@@ -115,8 +115,7 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
 
   }
 
-  def isQueened(s: State): Boolean = {
-    val p = s.on_move
+  def isQueened(s: State, p: Player): Boolean = {
     p match {
       case a: Black => {
         val xs = for (item <- s.pieces.filter((pc: Piece) => pc.getPlayer == a)) yield item.getLoc.x
@@ -176,61 +175,22 @@ class Game(rows: Int = 3, cols: Int = 3, ttenabled: Boolean) {
         scala.io.StdIn.readLine()
         */
 
-        if(new_state.value == -1)
+        //if(new_state.value == -1)
+        if(isQueened(new_state, s.on_move)) {
+          new_state.value = -1
           new_val = 1
+        }
         else
           new_val = -state_value(new_state, ii+1)
         max_val = math.max(max_val, new_val)
       }
     }
 
+    scala.io.StdIn.readLine()
+
     s.value = max_val
     max_val
   }
 
-}
-
-object Program {
-  def main(args: Array[String]): Unit = {
-    val g = new Game(ttenabled = true)
-
-    val l = List(
-      Pawn(Black(), new Loc(2,0)), Pawn(Black(), new Loc(2,1)), Pawn(Black(), new Loc(2,2)),
-      Pawn(White(), new Loc(0,0)), Pawn(White(), new Loc(1,1)), Pawn(White(), new Loc(0,2))
-    )
-    val s = new State(Black(), 0, l)
-
-    val al = List(
-      Pawn(Black(), new Loc(2,0)), Pawn(Black(), new Loc(2,1)), Pawn(Black(), new Loc(2,2)),
-      Pawn(White(), new Loc(0,0)), Pawn(White(), new Loc(0,1)), Pawn(White(), new Loc(0,2))
-    )
-
-    val as = new State(Black(), 0, al)
-    val bs = new State(White(), 0, al)
-
-    System.err.println(g.prettyPrint(s))
-    System.err.println(g.solve(s))
-
-    System.err.println(g.prettyPrint(as))
-    System.err.println(g.solve(as))
-
-    System.err.println(g.prettyPrint(bs))
-    System.err.println(g.solve(bs))
-
-    /*
-    val p = Pawn(p=White(), l=new Loc(0,0))
-    println("len p.funclist: " + p.funclist.length)
-    println(p.funclist)
-    */
-
-    /*
-    val ptt = "^cap.*".r
-    val mystr = "capLeft"
-    mystr match{
-      case ptt() => print("its matching")
-      case _ => print ("Its not matching")
-    }
-    */
-  }
 }
 
